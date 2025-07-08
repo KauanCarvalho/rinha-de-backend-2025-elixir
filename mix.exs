@@ -40,6 +40,7 @@ defmodule BackendFight.MixProject do
       {:phoenix, "~> 1.7.21"},
       {:phoenix_ecto, "~> 4.6.5"},
       {:postgrex, "~> 0.20.0"},
+      {:quantum, "~> 3.5.3"},
       {:redix, "~> 1.5.2"},
       {:telemetry_metrics, "~> 1.1.0"},
       {:telemetry_poller, "~> 1.2.0"}

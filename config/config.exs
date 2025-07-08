@@ -21,6 +21,16 @@ config :backend_fight, BackendFightWeb.Endpoint,
   ],
   pubsub_server: BackendFight.PubSub
 
+# Cron jobs configuration
+config :backend_fight, BackendFight.Scheduler,
+  timezone: "Etc/UTC",
+  jobs: [
+    healthcheck_manager: [
+      schedule: {:extended, "*/5"},
+      task: {BackendFight.Crons.PaymentProcessors.HealthcheckManager, :run, []}
+    ]
+  ]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
