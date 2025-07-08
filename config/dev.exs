@@ -10,6 +10,9 @@ config :backend_fight, BackendFight.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# Configure redis url
+config :backend_fight, :redis_url, "redis://localhost:6379"
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

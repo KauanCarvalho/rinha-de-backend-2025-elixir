@@ -13,6 +13,12 @@ config :backend_fight, BackendFight.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
+# Configure redis url
+config :backend_fight, :redis_url, "redis://localhost:6379"
+
+# Configure redis mock
+config :backend_fight, :redis_module, BackendFight.RedisMock
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :backend_fight, BackendFightWeb.Endpoint,

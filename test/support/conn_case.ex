@@ -22,8 +22,6 @@ defmodule BackendFightWeb.ConnCase do
       # The default endpoint for testing
       @endpoint BackendFightWeb.Endpoint
 
-      use BackendFightWeb, :verified_routes
-
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest

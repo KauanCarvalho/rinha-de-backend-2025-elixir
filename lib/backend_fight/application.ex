@@ -10,6 +10,7 @@ defmodule BackendFight.Application do
     children = [
       BackendFightWeb.Telemetry,
       BackendFight.Repo,
+      {Redix, {Application.get_env(:backend_fight, :redis_url), name: :redix}},
       {DNSCluster, query: Application.get_env(:backend_fight, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BackendFight.PubSub},
       # Start a worker by calling: BackendFight.Worker.start_link(arg)

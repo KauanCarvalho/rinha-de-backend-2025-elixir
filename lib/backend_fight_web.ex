@@ -19,7 +19,6 @@ defmodule BackendFightWeb do
     end
   end
 
-
   def controller do
     quote do
       use Phoenix.Controller, formats: [:json]

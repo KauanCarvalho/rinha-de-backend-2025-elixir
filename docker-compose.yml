@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: backend-fight-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./containers/postgres/postgresql.conf:/etc/postgresql.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql.conf"]
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.05"
+          memory: "32MB"
+
+  redis:
+    image: redis:8.0.3-alpine
+    container_name: backend-fight-redis
+    restart: unless-stopped
+    command:
+      [
+        "redis-server",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--maxclients",
+        "10000",
+      ]
+    networks:
+      - backend
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.05"
+          memory: "16MB"
+
+networks:
+  backend:
+  payment-processor:
+    external: true

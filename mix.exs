@@ -32,15 +32,17 @@ defmodule BackendFight.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bandit, "~> 1.7.0"},
+      {:dns_cluster, "~> 0.2.0"},
+      {:ecto_sql, "~> 3.13.2"},
+      {:jason, "~> 1.4.4"},
+      {:mox, "~> 1.2.0", only: :test},
       {:phoenix, "~> 1.7.21"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:phoenix_ecto, "~> 4.6.5"},
+      {:postgrex, "~> 0.20.0"},
+      {:redix, "~> 1.5.2"},
+      {:telemetry_metrics, "~> 1.1.0"},
+      {:telemetry_poller, "~> 1.2.0"}
     ]
   end
 
