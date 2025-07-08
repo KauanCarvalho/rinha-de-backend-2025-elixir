@@ -33,8 +33,10 @@ defmodule BackendFight.MixProject do
   defp deps do
     [
       {:bandit, "~> 1.7.0"},
+      {:bypass, "~> 2.1", only: :test},
       {:dns_cluster, "~> 0.2.0"},
       {:ecto_sql, "~> 3.13.2"},
+      {:finch, "~> 0.20"},
       {:jason, "~> 1.4.4"},
       {:mox, "~> 1.2.0", only: :test},
       {:phoenix, "~> 1.7.21"},

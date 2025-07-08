@@ -29,8 +29,14 @@ config :backend_fight, BackendFightWeb.Endpoint,
   secret_key_base: "LmWBEFU2sZ/dTFRdXXXGV+3sgblBrSqtW3+XzJZq7QHrkt51hkm/rQSq++vw8zM/",
   server: false
 
-# Print everything during test
-config :logger, level: :info
+# Configure the logger to not log during tests
+config :logger, backends: []
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Default payment processor configuration
+config :backend_fight, :default_payment_processor, base_url: "http://localhost:9001"
+
+# Fallback payment processor configuration
+config :backend_fight, :fallback_payment_processor, base_url: "http://localhost:9002"

@@ -24,9 +24,11 @@ config :backend_fight, BackendFightWeb.Endpoint,
 # Cron jobs configuration
 config :backend_fight, BackendFight.Scheduler,
   timezone: "Etc/UTC",
+  global: true,
+  poll_interval: 100,
   jobs: [
     healthcheck_manager: [
-      schedule: {:extended, "*/5"},
+      schedule: {:extended, "*/1"},
       task: {BackendFight.Crons.PaymentProcessors.HealthcheckManager, :run, []}
     ]
   ]
@@ -41,6 +43,14 @@ config :phoenix, :json_library, Jason
 
 # Configure redis module
 config :backend_fight, :redis_module, Redix
+
+# Default payment processor configuration
+config :backend_fight, :default_payment_processor,
+  base_url: System.fetch_env!("PAYMENT_PROCESSOR_DEFAULT_HOST")
+
+# Fallback payment processor configuration
+config :backend_fight, :fallback_payment_processor,
+  base_url: System.fetch_env!("PAYMENT_PROCESSOR_FALLBACK_HOST")
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

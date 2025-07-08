@@ -96,4 +96,12 @@ if config_env() == :prod do
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
+
+  # Default payment processor configuration
+  config :backend_fight, :default_payment_processor,
+    base_url: System.fetch_env!("PAYMENT_PROCESSOR_DEFAULT_HOST")
+
+  # Fallback payment processor configuration
+  config :backend_fight, :fallback_payment_processor,
+    base_url: System.fetch_env!("PAYMENT_PROCESSOR_FALLBACK_HOST")
 end

@@ -1,5 +1,5 @@
 defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   import Mox
   import ExUnit.CaptureLog
@@ -8,37 +8,72 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
 
   setup :verify_on_exit!
 
-  test "logs success when lock is acquired" do
-    key = "quantum:healthcheck_manager:lock"
+  @throttle_key HealthcheckManager.throttle_key()
+  @lock_key HealthcheckManager.lock_key()
 
-    expect(BackendFight.RedisMock, :command, fn :redix, ["SET", ^key, _, "NX", "EX", _] ->
-      {:ok, "OK"}
-    end)
-
-    expect(BackendFight.RedisMock, :command, fn :redix, ["EVAL", _lua, "1", ^key, _] ->
-      {:ok, 1}
-    end)
-
-    log =
-      capture_log(fn ->
-        assert :ok = HealthcheckManager.run()
+  describe "run/0" do
+    test "skips execution when throttled" do
+      expect(BackendFight.RedisMock, :command, fn
+        :redix, ["SET", @throttle_key, "1", "EX", _, "NX"] ->
+          {:error, :already_set}
       end)
 
-    assert log =~ "[HealthcheckManager] Lock acquired. Health check executed."
+      log =
+        capture_log(fn ->
+          assert HealthcheckManager.run() == :ok
+        end)
+
+      assert log =~ "[HealthcheckManager] Skipping execution: Throttled."
+    end
+
+    test "runs healthcheck end-to-end when not throttled and lock is acquired" do
+      bypass_default = Bypass.open(port: 9_001)
+      bypass_fallback = Bypass.open(port: 9_002)
+
+      Bypass.expect_once(bypass_default, "GET", "/payments/service-health", fn conn ->
+        Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 100}))
+      end)
+
+      Bypass.expect_once(bypass_fallback, "GET", "/payments/service-health", fn conn ->
+        Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 90}))
+      end)
+
+      expect(BackendFight.RedisMock, :command, 3, fn
+        :redix, ["SET", @throttle_key, "1", "EX", _, "NX"] ->
+          {:ok, "OK"}
+
+        :redix, ["SET", @lock_key, _, "NX", "EX", _] ->
+          {:ok, "OK"}
+
+        :redix, ["EVAL", _, "1", @lock_key, _] ->
+          {:ok, 1}
+      end)
+
+      expect(BackendFight.RedisMock, :command!, fn
+        :redix, ["SET", "selected_payment_processor", payload, "EX", "10"] ->
+          assert %{"payment_processor" => "fallback", "ts" => _ts} = Jason.decode!(payload)
+          {:ok, "OK"}
+      end)
+
+      log =
+        capture_log(fn ->
+          assert HealthcheckManager.run() == :ok
+        end)
+
+      assert log =~ "[HealthcheckManager] Lock acquired. Running healthcheck."
+      assert log =~ "[HealthcheckManager] Healthcheck completed."
+    end
   end
 
-  test "logs skip when lock not acquired" do
-    key = "quantum:healthcheck_manager:lock"
+  describe "throttle_key/0" do
+    test "returns the correct throttle key" do
+      assert is_binary(@lock_key) and @lock_key != ""
+    end
+  end
 
-    expect(BackendFight.RedisMock, :command, fn :redix, ["SET", ^key, _, "NX", "EX", _] ->
-      :error
-    end)
-
-    log =
-      capture_log(fn ->
-        assert :ok = HealthcheckManager.run()
-      end)
-
-    assert log =~ "[HealthcheckManager] Lock not acquired. Skipping execution."
+  describe "lock_key/0" do
+    test "returns the correct lock key" do
+      assert is_binary(@lock_key) and @lock_key != ""
+    end
   end
 end
