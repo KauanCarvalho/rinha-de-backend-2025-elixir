@@ -11,6 +11,12 @@ defmodule BackendFight.Clients.HTTP do
     |> do_request(opts)
   end
 
+  def post(url, body, headers \\ [], opts \\ []) do
+    :post
+    |> Finch.build(url, headers, body)
+    |> do_request(opts)
+  end
+
   defp do_request(request, opts) do
     case Finch.request(request, @finch, opts) do
       {:ok, %Finch.Response{status: 200, body: body}} ->
