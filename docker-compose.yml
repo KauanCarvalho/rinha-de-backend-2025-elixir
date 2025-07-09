@@ -17,7 +17,7 @@ services:
       resources:
         limits:
           cpus: "0.05"
-          memory: "32MB"
+          memory: "50MB"
 
   redis:
     image: redis:8.0.3-alpine

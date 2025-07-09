@@ -21,7 +21,7 @@ defmodule BackendFight.PaymentProcessors.Selector do
 
   - If default is healthy and fast (< #{@default_min_response_time}ms), it is selected immediately.
   - If default is failing and fallback is healthy, fallback is selected.
-  - If both are healthy, but fallback is significantly faster (5x or more), fallback is selected.
+  - If both are healthy, but fallback is significantly faster (#{@fallback_multiplier}x or more), fallback is selected.
   - In all other cases, default is selected.
 
   ## Examples

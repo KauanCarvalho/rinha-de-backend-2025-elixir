@@ -9,7 +9,9 @@ defmodule BackendFightWeb.Router do
     get "/healthcheck", HealthcheckController, :index
   end
 
-  scope "/api", BackendFightWeb do
+  scope "/", BackendFightWeb do
     pipe_through :api
+
+    post "/payments", PaymentController, :create
   end
 end
