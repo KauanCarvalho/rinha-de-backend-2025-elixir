@@ -7,10 +7,6 @@
 # General application configuration
 import Config
 
-config :backend_fight,
-  ecto_repos: [BackendFight.Repo],
-  generators: [timestamp_type: :utc_datetime]
-
 # Configures the endpoint
 config :backend_fight, BackendFightWeb.Endpoint,
   url: [host: "localhost"],
@@ -46,11 +42,16 @@ config :backend_fight, :redis_module, Redix
 
 # Default payment processor configuration
 config :backend_fight, :default_payment_processor,
-  base_url: System.fetch_env!("PAYMENT_PROCESSOR_DEFAULT_HOST")
+  base_url: System.get_env("PAYMENT_PROCESSOR_DEFAULT_HOST", "")
 
 # Fallback payment processor configuration
 config :backend_fight, :fallback_payment_processor,
-  base_url: System.fetch_env!("PAYMENT_PROCESSOR_FALLBACK_HOST")
+  base_url: System.get_env("PAYMENT_PROCESSOR_FALLBACK_HOST", "")
+
+# Allow disabling the scheduler
+config :backend_fight,
+       :background_processes?,
+       System.get_env("BACKGROUND_PROCCESSES", "true") in ["true", "1", "yes"]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

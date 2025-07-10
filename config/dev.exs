@@ -1,15 +1,5 @@
 import Config
 
-# Configure your database
-config :backend_fight, BackendFight.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "backend_fight_dev",
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
-
 # Configure redis url
 config :backend_fight, :redis_url, "redis://localhost:6379"
 
@@ -66,3 +56,9 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Default payment processor configuration
+config :backend_fight, :default_payment_processor, base_url: "http://localhost:8001"
+
+# Fallback payment processor configuration
+config :backend_fight, :fallback_payment_processor, base_url: "http://localhost:8002"

@@ -21,21 +21,6 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
-  database_url =
-    System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
-
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
-
-  config :backend_fight, BackendFight.Repo,
-    # ssl: true,
-    url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6
-
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want
@@ -50,8 +35,6 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
-
-  config :backend_fight, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :backend_fight, BackendFightWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
@@ -104,4 +87,22 @@ if config_env() == :prod do
   # Fallback payment processor configuration
   config :backend_fight, :fallback_payment_processor,
     base_url: System.fetch_env!("PAYMENT_PROCESSOR_FALLBACK_HOST")
+
+  # Configure redis url
+  config :backend_fight, :redis_url, "redis://redis:6379"
+
+  # Configure to enable or disable background processes
+  config :backend_fight,
+         :background_processes?,
+         System.get_env("BACKGROUND_PROCCESSES", "true") in ["true", "1", "yes"]
+
+  # Configure Finch for HTTP requests
+  config :backend_fight, BackendFight.Finch,
+    pools: %{
+      default: [
+        size: 300,
+        count: 2,
+        max_idle_time: 60_000
+      ]
+    }
 end

@@ -7,6 +7,7 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManager do
   @throttle_key "healthcheck:throttle"
   @lock_key "healthcheck:lock"
   @ttl "5"
+  @ttl_ms "5100"
 
   @doc """
   Runs the processor healthcheck with Redis-based throttle and lock:
@@ -18,12 +19,11 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManager do
   def run do
     redis = Application.get_env(:backend_fight, :redis_module, Redix)
 
-    case redis.command(:redix, ["SET", @throttle_key, "1", "EX", @ttl, "NX"]) do
+    case redis.command(:redix, ["SET", @throttle_key, "1", "PX", "#{@ttl_ms}", "NX"]) do
       {:ok, "OK"} ->
         case DistributedLock.with_lock(
                @lock_key,
                fn ->
-                 Logger.info("[HealthcheckManager] Lock acquired. Running healthcheck.")
                  Selector.choose_and_cache_payment_processor()
                end,
                ttl: String.to_integer(@ttl)

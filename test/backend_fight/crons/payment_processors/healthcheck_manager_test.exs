@@ -14,7 +14,7 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
   describe "run/0" do
     test "skips execution when throttled" do
       expect(BackendFight.RedisMock, :command, fn
-        :redix, ["SET", @throttle_key, "1", "EX", _, "NX"] ->
+        :redix, ["SET", @throttle_key, "1", "PX", _, "NX"] ->
           {:error, :already_set}
       end)
 
@@ -39,7 +39,7 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
       end)
 
       expect(BackendFight.RedisMock, :command, 3, fn
-        :redix, ["SET", @throttle_key, "1", "EX", _, "NX"] ->
+        :redix, ["SET", @throttle_key, "1", "PX", _, "NX"] ->
           {:ok, "OK"}
 
         :redix, ["SET", @lock_key, _, "NX", "EX", _] ->
@@ -50,8 +50,8 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
       end)
 
       expect(BackendFight.RedisMock, :command!, fn
-        :redix, ["SET", "selected_payment_processor", payload, "EX", "10"] ->
-          assert %{"payment_processor" => "fallback", "ts" => _ts} = Jason.decode!(payload)
+        :redix, ["SET", "selected_payment_processor", payload, "EX", "5"] ->
+          assert %{"payment_processor" => "default", "ts" => _ts} = Jason.decode!(payload)
           {:ok, "OK"}
       end)
 
@@ -60,7 +60,6 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
           assert HealthcheckManager.run() == :ok
         end)
 
-      assert log =~ "[HealthcheckManager] Lock acquired. Running healthcheck."
       assert log =~ "[HealthcheckManager] Healthcheck completed."
     end
   end

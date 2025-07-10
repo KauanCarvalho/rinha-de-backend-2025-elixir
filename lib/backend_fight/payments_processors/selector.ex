@@ -1,30 +1,38 @@
 defmodule BackendFight.PaymentProcessors.Selector do
   @moduledoc """
-  Selects and caches the best available payment processor using Redis.
+  Responsible for selecting and caching the optimal payment processor (`default` or `fallback`)
+  based on health and response time using Redis as a short-lived cache.
+
+  This module periodically queries both processors' health endpoints, compares their statuses and
+  latencies, and chooses the most suitable processor. The selection is cached in Redis to avoid
+  unnecessary health checks on every request.
   """
+
+  require Logger
 
   alias BackendFight.Clients.PaymentProcessors.Default.Payments, as: DefaultPayments
   alias BackendFight.Clients.PaymentProcessors.Fallback.Payments, as: FallbackPayments
 
-  @default_min_response_time 100
   @cache_key "selected_payment_processor"
   @default "default"
   @fallback "fallback"
-  @fallback_multiplier 5
-  @cache_ttl 10
+  @default_max_latency_difference 50
+  @cache_ttl 5
 
   @doc """
-  Chooses the most appropriate payment processor between `default` and `fallback`
-  based on health and latency. Caches the selected processor in Redis.
+  Chooses the most appropriate payment processor (`"default"` or `"fallback"`) based on health and latency,
+  and stores the selected value in Redis for quick retrieval.
 
-  ### Selection rules:
+  ## Selection rules
 
-  - If default is healthy and fast (< #{@default_min_response_time}ms), it is selected immediately.
-  - If default is failing and fallback is healthy, fallback is selected.
-  - If both are healthy, but fallback is significantly faster (#{@fallback_multiplier}x or more), fallback is selected.
-  - In all other cases, default is selected.
+  - If `default` is healthy and `fallback` is failing → select `"default"`.
+  - If `default` is failing and `fallback` is healthy → select `"fallback"`.
+  - If both are healthy:
+    - If `default` is at most #{@default_max_latency_difference}ms slower than `fallback`, select `"default"`.
+    - Otherwise, select `"fallback"`.
+  - If both fail or data is unavailable, fallback to `"default"`.
 
-  ## Examples
+  ## Example
 
       iex> BackendFight.PaymentProcessors.Selector.choose_and_cache_payment_processor()
       :ok
@@ -37,21 +45,20 @@ defmodule BackendFight.PaymentProcessors.Selector do
     cache_selection(processor)
   end
 
-  defp select_processor({:ok, %{failing: false, min_response_time: rt}}, _fallback)
-       when rt < @default_min_response_time,
-       do: @default
-
+  defp select_processor({:ok, %{failing: false}}, {:ok, %{failing: true}}), do: @default
   defp select_processor({:ok, %{failing: true}}, {:ok, %{failing: false}}), do: @fallback
+
+  defp select_processor({:ok, %{}}, {:error, _}), do: @default
+  defp select_processor({:error, _}, {:ok, %{}}), do: @fallback
 
   defp select_processor(
          {:ok, %{failing: false, min_response_time: rt}},
          {:ok, %{failing: false, min_response_time: frt}}
        )
-       when frt < rt * @fallback_multiplier,
-       do: @fallback
+       when rt < frt + @default_max_latency_difference,
+       do: @default
 
-  defp select_processor({:error, _}, {:ok, %{failing: false}}), do: @fallback
-
+  defp select_processor({:ok, %{failing: false}}, {:ok, %{failing: false}}), do: @fallback
   defp select_processor(_, _), do: @default
 
   defp cache_selection(processor) do
@@ -63,22 +70,18 @@ defmodule BackendFight.PaymentProcessors.Selector do
     }
 
     redis.command!(:redix, ["SET", @cache_key, Jason.encode!(payload), "EX", "#{@cache_ttl}"])
-
     :ok
   end
 
   @doc """
-  Returns the currently selected payment processor from Redis cache.
+  Fetches the currently selected payment processor from Redis cache.
 
-  If no selection is cached or an error occurs, it defaults to `"default"`.
+  If no processor is cached or decoding fails, defaults to `"default"`.
 
-  ## Examples
+  ## Example
 
-      iex> Selector.current_payment_processor()
+      iex> BackendFight.PaymentProcessors.Selector.current_payment_processor()
       {:ok, "default"}
-
-      iex> Selector.current_payment_processor()
-      {:ok, "fallback"}
   """
   def current_payment_processor do
     redis = Application.get_env(:backend_fight, :redis_module, Redix)

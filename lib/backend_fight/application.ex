@@ -10,16 +10,14 @@ defmodule BackendFight.Application do
     children =
       [
         BackendFightWeb.Telemetry,
-        BackendFight.Repo,
         {Redix, {Application.get_env(:backend_fight, :redis_url), name: :redix}},
         {Finch, name: BackendFight.Finch},
-        {DNSCluster, query: Application.get_env(:backend_fight, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: BackendFight.PubSub},
         # Start a worker by calling: BackendFight.Worker.start_link(arg)
         # {BackendFight.Worker, arg},
         # Start to serve requests, typically the last entry
         BackendFightWeb.Endpoint
-      ] ++ scheduler_child()
+      ] ++ background_processes()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -36,9 +34,12 @@ defmodule BackendFight.Application do
   end
 
   # This function determines whether to start the scheduler based on the application environment
-  defp scheduler_child do
-    if Application.get_env(:backend_fight, :enable_scheduler?, true) do
-      [BackendFight.Scheduler]
+  defp background_processes do
+    if Application.get_env(:backend_fight, :background_processes?, true) do
+      [
+        BackendFight.Scheduler,
+        BackendFight.Processors.PaymentAuthorizer
+      ]
     else
       []
     end

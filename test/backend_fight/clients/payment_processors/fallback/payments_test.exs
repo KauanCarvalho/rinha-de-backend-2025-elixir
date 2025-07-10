@@ -6,7 +6,6 @@ defmodule BackendFight.Clients.PaymentProcessors.Fallback.PaymentsTest do
 
   setup do
     bypass = Bypass.open(port: 9_002)
-
     {:ok, bypass: bypass}
   end
 
@@ -52,7 +51,7 @@ defmodule BackendFight.Clients.PaymentProcessors.Fallback.PaymentsTest do
       params = %{
         "correlationId" => UUID.generate(),
         "amount" => 19.90,
-        "requestedAt" => DateTime.utc_now()
+        "requestedAt" => DateTime.utc_now() |> DateTime.to_iso8601()
       }
 
       assert {:ok, %{"message" => "payment processed successfully"}} = Payments.create(params)
@@ -66,7 +65,7 @@ defmodule BackendFight.Clients.PaymentProcessors.Fallback.PaymentsTest do
       params = %{
         "correlationId" => UUID.generate(),
         "amount" => 10.00,
-        "requestedAt" => DateTime.utc_now()
+        "requestedAt" => DateTime.to_iso8601(DateTime.utc_now())
       }
 
       assert {:error, {:unexpected_response, _}} = Payments.create(params)
@@ -80,7 +79,7 @@ defmodule BackendFight.Clients.PaymentProcessors.Fallback.PaymentsTest do
       params = %{
         "correlationId" => UUID.generate(),
         "amount" => 10.00,
-        "requestedAt" => DateTime.utc_now()
+        "requestedAt" => DateTime.to_iso8601(DateTime.utc_now())
       }
 
       assert {:error, {:unexpected_status, 500}} = Payments.create(params)

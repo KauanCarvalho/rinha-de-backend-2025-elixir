@@ -5,32 +5,24 @@ defmodule BackendFightWeb.ConnCase do
 
   Such tests rely on `Phoenix.ConnTest` and also
   import other functionality to make it easier
-  to build common data structures and query the data layer.
+  to build common data structures and query the web layer.
 
-  Finally, if the test case interacts with the database,
-  we enable the SQL sandbox, so changes done to the database
-  are reverted at the end of every test. If you are using
-  PostgreSQL, you can even run database tests asynchronously
-  by setting `use BackendFightWeb.ConnCase, async: true`, although
-  this option is not recommended for other databases.
+  It provides a default connection for use in tests.
   """
 
   use ExUnit.CaseTemplate
 
   using do
     quote do
-      # The default endpoint for testing
       @endpoint BackendFightWeb.Endpoint
 
-      # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import BackendFightWeb.ConnCase
     end
   end
 
-  setup tags do
-    BackendFight.DataCase.setup_sandbox(tags)
+  setup _tags do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

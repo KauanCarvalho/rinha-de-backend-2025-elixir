@@ -13,5 +13,7 @@ defmodule BackendFightWeb.Router do
     pipe_through :api
 
     post "/payments", PaymentController, :create
+    post "/purge-payments", PaymentController, :purge
+    get "/payments-summary", PaymentController, :summary
   end
 end

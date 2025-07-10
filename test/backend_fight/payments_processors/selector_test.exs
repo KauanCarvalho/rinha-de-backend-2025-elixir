@@ -14,18 +14,13 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
     {:ok, default: default_bypass, fallback: fallback_bypass}
   end
 
-  defp expect_redis_cache!(processor) do
-    expect(BackendFight.RedisMock, :command!, fn :redix,
-                                                 [
-                                                   "SET",
-                                                   "selected_payment_processor",
-                                                   payload,
-                                                   "EX",
-                                                   "10"
-                                                 ] ->
-      map = Jason.decode!(payload)
-      assert map["payment_processor"] == processor
-      :ok
+  defp expect_redis_cache!(expected_processor) do
+    expect(BackendFight.RedisMock, :command!, fn
+      :redix, ["SET", "selected_payment_processor", payload, "EX", "5"] ->
+        map = Jason.decode!(payload)
+        assert map["payment_processor"] == expected_processor
+        assert is_binary(map["ts"])
+        :ok
     end)
   end
 
@@ -39,7 +34,6 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
     end)
 
     expect_redis_cache!("default")
-
     assert :ok = Selector.choose_and_cache_payment_processor()
   end
 
@@ -56,7 +50,6 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
     end)
 
     expect_redis_cache!("fallback")
-
     assert :ok = Selector.choose_and_cache_payment_processor()
   end
 
@@ -70,7 +63,6 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
     end)
 
     expect_redis_cache!("fallback")
-
     assert :ok = Selector.choose_and_cache_payment_processor()
   end
 
@@ -84,7 +76,6 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
     end)
 
     expect_redis_cache!("default")
-
     assert :ok = Selector.choose_and_cache_payment_processor()
   end
 
@@ -99,7 +90,20 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
     end)
 
     expect_redis_cache!("fallback")
+    assert :ok = Selector.choose_and_cache_payment_processor()
+  end
 
+  test "selects default if fallback request fails but default succeeds", %{
+    default: d,
+    fallback: f
+  } do
+    Bypass.expect_once(d, "GET", "/payments/service-health", fn conn ->
+      Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 50}))
+    end)
+
+    Bypass.down(f)
+
+    expect_redis_cache!("default")
     assert :ok = Selector.choose_and_cache_payment_processor()
   end
 

@@ -1,0 +1,33 @@
+# Ignore build artifacts from mix (keeps image size small and avoids copying unneeded files)
+_build/
+
+# Ignore compiled dependencies (they will be rebuilt during docker build)
+deps/
+
+# Ignore test files (not needed in production builds)
+test/
+
+# Ignore local configuration and secrets (handled via runtime config or env vars)
+config/dev.exs
+config/test.exs
+
+# Ignore version control folders (not needed in the image)
+.git/
+.gitignore
+
+# Ignore release output if generated locally (Docker builds its own)
+rel/
+
+# Ignore coverage reports and analysis tools
+cover/
+.plt
+.plt.*
+
+# Optional: ignore logs and local tmp files
+log/
+tmp/
+
+# Optional: ignore any Docker-related local files not needed in image
+docker-compose.yml
+docker-compose.*.yml
+*.local

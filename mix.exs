@@ -9,7 +9,13 @@ defmodule BackendFight.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      releases: [
+        backend_fight: [
+          include_erts: true,
+          include_executables_for: [:unix]
+        ]
+      ]
     ]
   end
 
@@ -34,14 +40,13 @@ defmodule BackendFight.MixProject do
     [
       {:bandit, "~> 1.7.0"},
       {:bypass, "~> 2.1", only: :test},
-      {:dns_cluster, "~> 0.2.0"},
-      {:ecto_sql, "~> 3.13.2"},
+      {:broadway, "~> 1.2.1"},
+      {:ecto, "~> 3.13.2"},
       {:finch, "~> 0.20"},
+      {:gen_stage, "~> 1.3.1"},
       {:jason, "~> 1.4.4"},
       {:mox, "~> 1.2.0", only: :test},
       {:phoenix, "~> 1.7.21"},
-      {:phoenix_ecto, "~> 4.6.5"},
-      {:postgrex, "~> 0.20.0"},
       {:quantum, "~> 3.5.3"},
       {:redix, "~> 1.5.2"},
       {:telemetry_metrics, "~> 1.1.0"},
@@ -57,10 +62,8 @@ defmodule BackendFight.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      setup: ["deps.get"],
+      test: ["test"]
     ]
   end
 end

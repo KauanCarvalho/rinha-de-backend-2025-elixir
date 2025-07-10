@@ -6,8 +6,24 @@ defmodule BackendFightWeb.PaymentController do
   alias BackendFight.Payments
 
   def create(conn, params) do
-    with {:ok, payment} <- Payments.create_payment(params) do
-      json(conn, %{correlationId: payment.correlation_id})
+    with {:ok, _payment} <- Payments.enqueue_payment(params) do
+      send_resp(conn, 202, "")
     end
+  end
+
+  def purge(conn, _params) do
+    case Payments.purge_redis() do
+      {:ok, _} ->
+        json(conn, %{message: "Redis cache purged successfully"})
+
+      {:error, reason} ->
+        conn
+        |> put_status(:internal_server_error)
+        |> json(%{error: "Failed to purge Redis", reason: inspect(reason)})
+    end
+  end
+
+  def summary(conn, params) do
+    json(conn, Payments.get_summary(params))
   end
 end

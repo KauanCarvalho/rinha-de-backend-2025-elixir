@@ -1,60 +1,56 @@
 defmodule BackendFight.PaymentsTest do
-  use BackendFight.DataCase, async: true
+  use ExUnit.Case, async: true
+
+  import Mox
 
   alias BackendFight.Payments
-  alias BackendFight.Schemas.Payment
-  alias BackendFight.Repo
-  alias Ecto.{Changeset, UUID}
+  alias Ecto.UUID
+  alias BackendFight.RedisMock
 
-  describe "create_payment/1" do
-    test "inserts a valid payment" do
-      uuid = Ecto.UUID.generate()
+  setup :verify_on_exit!
 
-      assert {:ok, %Payment{} = payment} =
-               Payments.create_payment(%{
-                 "correlationId" => uuid,
-                 "amount" => 19.90
-               })
+  @valid_uuid UUID.generate()
+  @valid_amount "19.90"
 
-      assert payment.correlation_id == uuid
-      assert Decimal.eq?(payment.amount, Decimal.new("19.90"))
-      assert payment.processor == :default
-      assert payment.status == :created
-      assert %DateTime{} = payment.requested_at
+  describe "enqueue_payment/1" do
+    test "successfully enqueues payment with valid data" do
+      expect(RedisMock, :command, fn :redix, ["LPUSH", "payments_created", payload] ->
+        decoded = Jason.decode!(payload)
+        assert decoded["correlationId"] == @valid_uuid
+        assert decoded["amount"] == 19.9
+        assert decoded["requestedAt"]
+        {:ok, :queued}
+      end)
 
-      assert Repo.get!(Payment, uuid)
-    end
-
-    test "returns :error for invalid UUID" do
-      assert Payments.create_payment(%{
-               "correlationId" => "invalid-uuid",
-               "amount" => 10.0
-             }) == {:error, :invalid_correlation_id}
-    end
-
-    test "returns error for missing fields" do
-      assert {:error, :invalid_payload} =
-               Payments.create_payment(%{
-                 "correlationId" => UUID.generate()
+      assert {:ok, :enqueued} =
+               Payments.enqueue_payment(%{
+                 "correlationId" => @valid_uuid,
+                 "amount" => @valid_amount
                })
     end
 
-    test "returns error for negative amount" do
-      assert {:error, %Changeset{} = changeset} =
-               Payments.create_payment(%{
-                 "correlationId" => UUID.generate(),
-                 "amount" => -5
+    test "fails if correlationId is not a UUID" do
+      assert {:error, :invalid_correlation_id} =
+               Payments.enqueue_payment(%{
+                 "correlationId" => "not-a-uuid",
+                 "amount" => @valid_amount
                })
-
-      assert %{amount: ["must be greater than 0"]} = errors_on(changeset)
     end
 
-    test "returns error for wrong types" do
-      assert {:error, :invalid_payload} =
-               Payments.create_payment(%{
-                 "correlationId" => 123,
-                 "amount" => "wrong"
-               })
+    test "fails with invalid payload" do
+      assert {:error, :invalid_payload} = Payments.enqueue_payment(%{"amount" => "10.0"})
+      assert {:error, :invalid_payload} = Payments.enqueue_payment(%{})
+      assert {:error, :invalid_payload} = Payments.enqueue_payment(nil)
+    end
+  end
+
+  describe "purge_redis/0" do
+    test "calls FLUSHDB on redis" do
+      expect(RedisMock, :command, fn :redix, ["FLUSHDB"] ->
+        {:ok, "OK"}
+      end)
+
+      assert {:ok, "OK"} = Payments.purge_redis()
     end
   end
 end

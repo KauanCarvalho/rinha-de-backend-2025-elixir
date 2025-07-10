@@ -1,13 +1,10 @@
 defmodule BackendFightWeb.HealthcheckController do
   use BackendFightWeb, :controller
 
-  alias BackendFight.Repo
-
   def index(conn, _params) do
     redis = Application.get_env(:backend_fight, :redis_module, Redix)
 
-    with {:ok, "PONG"} <- redis.command(:redix, ["PING"]),
-         {:ok, _} <- Repo.query("SELECT 1") do
+    with {:ok, "PONG"} <- redis.command(:redix, ["PING"]) do
       json(conn, %{status: "ok"})
     else
       _ ->

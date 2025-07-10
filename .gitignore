@@ -27,3 +27,6 @@ backend_fight-*.tar
 
 # Ignore ElixirLS build artifacts (used by the Elixir Language Server in editors like VS Code)
 .elixir_ls/
+
+# Ignore k6 report
+report.html

@@ -11,7 +11,7 @@ defmodule BackendFight.Clients.PaymentProcessors.PaymentParamsTest do
       params = %{
         "correlationId" => UUID.generate(),
         "amount" => "19.90",
-        "requestedAt" => DateTime.utc_now() |> DateTime.truncate(:second)
+        "requestedAt" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
       }
 
       changeset = PaymentParams.changeset(params)
@@ -53,7 +53,7 @@ defmodule BackendFight.Clients.PaymentProcessors.PaymentParamsTest do
       params = %{
         "correlationId" => "invalid-uuid",
         "amount" => "abc",
-        "requestedAt" => "not-a-date"
+        "requestedAt" => %{}
       }
 
       changeset = PaymentParams.changeset(params)

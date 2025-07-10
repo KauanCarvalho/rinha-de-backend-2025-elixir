@@ -1,21 +1,19 @@
 defmodule BackendFight.Schemas.Payment do
   use Ecto.Schema
-
   import Ecto.Changeset
-
-  alias Ecto.Enum
 
   @permitted_params ~w(correlation_id amount processor requested_at status)a
   @required_fields ~w(correlation_id amount requested_at status)a
-  @allowed_processors ~w(default fallback)a
-  @allowed_statuses ~w(created processing completed failed)a
+  @allowed_processors ~w(default fallback)
+  @allowed_statuses ~w(created completed)
 
-  @primary_key {:correlation_id, :binary_id, autogenerate: false}
-  schema "payments" do
-    field :amount, :decimal
-    field :processor, Enum, values: @allowed_processors
-    field :requested_at, :utc_datetime_usec
-    field :status, Enum, values: @allowed_statuses
+  @primary_key false
+  embedded_schema do
+    field :correlation_id, :string
+    field :amount, :float
+    field :processor, :string
+    field :requested_at, :string
+    field :status, :string
   end
 
   def changeset(struct, attrs) do
@@ -23,6 +21,7 @@ defmodule BackendFight.Schemas.Payment do
     |> cast(attrs, @permitted_params)
     |> validate_required(@required_fields)
     |> validate_number(:amount, greater_than: 0)
-    |> unique_constraint(:correlation_id, name: :payments_pkey)
+    |> validate_inclusion(:processor, @allowed_processors)
+    |> validate_inclusion(:status, @allowed_statuses)
   end
 end
