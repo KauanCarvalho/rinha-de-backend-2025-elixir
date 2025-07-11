@@ -10,6 +10,7 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
   alias Broadway.Message
   alias BackendFight.Clients.PaymentProcessors.Default.Payments, as: DefaultProcessor
   alias BackendFight.Clients.PaymentProcessors.Fallback.Payments, as: FallbackProcessor
+  alias BackendFight.DistributedLock
   alias BackendFight.PaymentProcessors.Selector
   alias BackendFight.Producers.Enqueuer
 
@@ -17,6 +18,8 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
 
   @redis_key_result "payments"
   @redis_key_queue "payments_created"
+  @change_processor_key "change_processor"
+  @change_processor_ttl 60
 
   def start_link(_opts) do
     Broadway.start_link(__MODULE__,
@@ -27,7 +30,7 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
       ],
       processors: [
         default: [
-          concurrency: 100,
+          concurrency: 120,
           max_demand: 10
         ]
       ]
@@ -35,14 +38,16 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
   end
 
   @impl true
-  def handle_message(_processor, %Message{data: %{} = payload} = message, _ctx) do
-    with %{
-           "correlationId" => cid,
-           "amount" => amount,
-           "requestedAt" => ts
-         } <- payload,
-         {:ok, processor} <- Selector.current_payment_processor(),
-         {:ok, processor_module} <- choose_processor(processor),
+  def handle_message(
+        _processor,
+        %Message{
+          data: %{"correlationId" => cid, "amount" => amount, "requestedAt" => ts} = payload
+        } = message,
+        _ctx
+      ) do
+    {:ok, processor} = Selector.current_payment_processor()
+
+    with {:ok, processor_module} <- choose_processor(processor),
          params <- %{
            correlationId: cid,
            amount: amount,
@@ -51,6 +56,17 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
          {:ok, _} <- processor_module.create(params) do
       persist_result(cid, amount, processor, ts)
     else
+      {:error, {:unexpected_status, _}} ->
+        DistributedLock.with_lock(
+          @change_processor_key,
+          fn ->
+            Selector.recalculate_payment_processor(processor)
+          end,
+          ttl: @change_processor_ttl
+        )
+
+        requeue_message(Jason.encode!(payload))
+
       _ ->
         requeue_message(Jason.encode!(payload))
     end

@@ -16,9 +16,9 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
 
   defp expect_redis_cache!(expected_processor) do
     expect(BackendFight.RedisMock, :command!, fn
-      :redix, ["SET", "selected_payment_processor", payload, "EX", "5"] ->
+      :redix, ["SET", "selected_payment_processor", payload, "EX", "30"] ->
         map = Jason.decode!(payload)
-        assert map["payment_processor"] == expected_processor
+        assert map["current_processor"] == expected_processor
         assert is_binary(map["ts"])
         :ok
     end)
@@ -55,7 +55,7 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
 
   test "selects fallback when it's significantly faster", %{default: d, fallback: f} do
     Bypass.expect_once(d, "GET", "/payments/service-health", fn conn ->
-      Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 101}))
+      Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 201}))
     end)
 
     Bypass.expect_once(f, "GET", "/payments/service-health", fn conn ->
@@ -109,7 +109,7 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
 
   describe "current_payment_processor/0" do
     test "returns fallback from cache" do
-      payload = Jason.encode!(%{payment_processor: "fallback", ts: DateTime.utc_now()})
+      payload = Jason.encode!(%{current_processor: "fallback", ts: DateTime.utc_now()})
 
       expect(BackendFight.RedisMock, :command, fn :redix, ["GET", "selected_payment_processor"] ->
         {:ok, payload}

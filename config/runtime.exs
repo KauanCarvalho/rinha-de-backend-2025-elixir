@@ -100,7 +100,7 @@ if config_env() == :prod do
   config :backend_fight, BackendFight.Finch,
     pools: %{
       default: [
-        size: 300,
+        size: 150,
         count: 2,
         max_idle_time: 60_000
       ]

@@ -5,13 +5,26 @@ defmodule BackendFight.Producers.Enqueuer do
   """
 
   use GenStage
-  alias Broadway.Message
+
+  alias Broadway.{Message, NoopAcknowledger}
 
   require Logger
 
-  @poll_interval 50
+  @poll_interval 5
   @queue_key "payments_created"
   @redix :redix
+
+  @rpop_script """
+  local key = KEYS[1]
+  local n = tonumber(ARGV[1])
+  local res = {}
+  for i = 1, n do
+    local val = redis.call("RPOP", key)
+    if not val then break end
+    table.insert(res, val)
+  end
+  return res
+  """
 
   def start_link(opts) do
     GenStage.start_link(__MODULE__, opts, name: __MODULE__)
@@ -49,27 +62,15 @@ defmodule BackendFight.Producers.Enqueuer do
   end
 
   defp fetch_from_redis(count) do
-    Enum.map(1..count, fn _ ->
-      case Redix.command(@redix, ["RPOP", @queue_key]) do
-        {:ok, nil} ->
-          nil
+    case Redix.command(@redix, ["EVAL", @rpop_script, "1", @queue_key, "#{count}"]) do
+      {:ok, items} when is_list(items) ->
+        for json <- items,
+            {:ok, data} <- [Jason.decode(json)] do
+          %Message{data: data, acknowledger: {NoopAcknowledger, nil, nil}}
+        end
 
-        {:ok, json} ->
-          case Jason.decode(json) do
-            {:ok, data} ->
-              %Message{
-                data: data,
-                acknowledger: {Broadway.NoopAcknowledger, nil, nil}
-              }
-
-            _ ->
-              nil
-          end
-
-        _ ->
-          nil
-      end
-    end)
-    |> Enum.reject(&is_nil/1)
+      _ ->
+        []
+    end
   end
 end

@@ -17,7 +17,7 @@ defmodule BackendFight.Clients.PaymentProcessors.Default.Payments do
 
   @service_health_path "payments/service-health"
   @payments_path "payments"
-  @timeout 5_000
+  @timeout 6_000
 
   @doc """
   Performs a health check on the default payment processor service.

@@ -12,6 +12,8 @@ services:
         "no",
         "--maxclients",
         "10000",
+        "--maxmemory",
+        "25mb"
       ]
     networks:
       - backend
@@ -20,8 +22,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "60MB"
+          cpus: "0.30"
+          memory: "30MB"
 
   app1: &app
     build:
@@ -50,8 +52,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "130MB"
+          cpus: "0.55"
+          memory: "150MB"
 
   app2:
     <<: *app
@@ -69,8 +71,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "130MB"
+          cpus: "0.55"
+          memory: "150MB"
 
   nginx:
     image: nginx:1.29.0-alpine 
@@ -87,10 +89,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: '30MB'
+          cpus: "0.1"
+          memory: "20MB"
 
 networks:
   backend:
+    driver: bridge
   payment-processor:
     external: true

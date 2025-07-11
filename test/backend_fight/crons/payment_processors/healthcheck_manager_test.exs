@@ -50,8 +50,8 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManagerTest do
       end)
 
       expect(BackendFight.RedisMock, :command!, fn
-        :redix, ["SET", "selected_payment_processor", payload, "EX", "5"] ->
-          assert %{"payment_processor" => "default", "ts" => _ts} = Jason.decode!(payload)
+        :redix, ["SET", "selected_payment_processor", payload, "EX", "30"] ->
+          assert %{"current_processor" => "default", "ts" => _ts} = Jason.decode!(payload)
           {:ok, "OK"}
       end)
 
