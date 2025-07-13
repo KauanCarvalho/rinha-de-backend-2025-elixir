@@ -19,14 +19,14 @@ defmodule BackendFight.Crons.PaymentProcessors.HealthcheckManager do
   def run do
     redis = Application.get_env(:backend_fight, :redis_module, Redix)
 
-    case redis.command(:redix, ["SET", @throttle_key, "1", "PX", "#{@ttl_ms}", "NX"]) do
+    case redis.command(:redix, ["SET", @throttle_key, "1", "PX", @ttl_ms, "NX"]) do
       {:ok, "OK"} ->
         case DistributedLock.with_lock(
                @lock_key,
                fn ->
                  Selector.choose_and_cache_payment_processor()
                end,
-               ttl: String.to_integer(@ttl)
+               ttl: @ttl
              ) do
           :ok ->
             Logger.info("[HealthcheckManager] Healthcheck completed.")

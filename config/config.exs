@@ -14,8 +14,7 @@ config :backend_fight, BackendFightWeb.Endpoint,
   render_errors: [
     formats: [json: BackendFightWeb.ErrorJSON],
     layout: false
-  ],
-  pubsub_server: BackendFight.PubSub
+  ]
 
 # Cron jobs configuration
 config :backend_fight, BackendFight.Scheduler,

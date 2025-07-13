@@ -9,10 +9,8 @@ defmodule BackendFight.Application do
   def start(_type, _args) do
     children =
       [
-        BackendFightWeb.Telemetry,
         {Redix, {Application.get_env(:backend_fight, :redis_url), name: :redix}},
         {Finch, name: BackendFight.Finch},
-        {Phoenix.PubSub, name: BackendFight.PubSub},
         # Start a worker by calling: BackendFight.Worker.start_link(arg)
         # {BackendFight.Worker, arg},
         # Start to serve requests, typically the last entry

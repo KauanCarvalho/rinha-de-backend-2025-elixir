@@ -86,7 +86,7 @@ check-jq:
 	}
 
 check-uuidgen:
-  @command -v uuidgen >/dev/null 2>&1 || { \
-    echo >&2 "Error: uuidgen is not installed."; \
-    exit 1; \
-  }
+	@command -v uuidgen >/dev/null 2>&1 || { \
+		echo >&2 "Error: uuidgen is not installed."; \
+		exit 1; \
+	}

@@ -38,9 +38,7 @@ defmodule BackendFight.Payments do
          {:ok, json} <-
            Jason.encode(%{
              correlationId: uuid,
-             amount: normalize_amount(amount),
-             requestedAt:
-               DateTime.utc_now() |> DateTime.truncate(:millisecond) |> DateTime.to_iso8601()
+             amount: normalize_amount(amount)
            }),
          {:ok, _} <- redis().command(:redix, ["LPUSH", @queue_key, json]) do
       {:ok, :enqueued}
