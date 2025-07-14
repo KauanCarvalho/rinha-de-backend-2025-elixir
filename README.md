@@ -189,38 +189,38 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "60MB"
+          cpus: "0.15"
+          memory: "20MB"
 
   app1:
     build: .
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "130MB"
+          cpus: "0.6"
+          memory: "150MB"
 
   app2:
     build: .
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "130MB"
+          cpus: "0.6"
+          memory: "150MB"
 
   nginx:
     image: nginx:1.29.0-alpine
     deploy:
       resources:
         limits:
-          cpus: "0.25"
+          cpus: "0.15"
           memory: "30MB"
 ```
 
 ### Total Resource Allocation
 
-* **CPUs**: `0.25 + 0.5 + 0.5 + 0.25 = 1.5 CPUs`
-* **Memory**: `60MB + 130MB + 130MB + 30MB = 350MB`
+* **CPUs**: `0.15 + 0.6 + 0.6 + 0.15 = 1.5 CPUs`
+* **Memory**: `20MB + 150MB + 150MB + 30MB = 350MB`
 
 ---
 
