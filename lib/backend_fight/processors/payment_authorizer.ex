@@ -27,21 +27,21 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
       ],
       processors: [
         default: [
-          concurrency: 100,
-          max_demand: 10
+          concurrency: 50,
+          max_demand: 1
         ]
       ]
     )
   end
 
   @impl true
-  def handle_message(_processor, %Message{data: %{} = payload} = message, _ctx) do
-    with %{
-           "correlationId" => cid,
-           "amount" => amount,
-           "requestedAt" => ts
-         } <- payload,
-         {:ok, processor} <- Selector.current_payment_processor(),
+  def handle_message(
+        _processor,
+        %Message{data: %{"correlationId" => cid, "amount" => amount} = payload} = message,
+        _ctx
+      ) do
+    with {:ok, processor} <- Selector.current_payment_processor(),
+         ts <- DateTime.utc_now() |> DateTime.truncate(:millisecond) |> DateTime.to_iso8601(),
          {:ok, processor_module} <- choose_processor(processor),
          params <- %{
            correlationId: cid,

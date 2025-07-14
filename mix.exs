@@ -48,9 +48,7 @@ defmodule BackendFight.MixProject do
       {:mox, "~> 1.2.0", only: :test},
       {:phoenix, "~> 1.7.21"},
       {:quantum, "~> 3.5.3"},
-      {:redix, "~> 1.5.2"},
-      {:telemetry_metrics, "~> 1.1.0"},
-      {:telemetry_poller, "~> 1.2.0"}
+      {:redix, "~> 1.5.2"}
     ]
   end
 

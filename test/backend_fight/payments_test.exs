@@ -18,7 +18,6 @@ defmodule BackendFight.PaymentsTest do
         decoded = Jason.decode!(payload)
         assert decoded["correlationId"] == @valid_uuid
         assert decoded["amount"] == 19.9
-        assert decoded["requestedAt"]
         {:ok, :queued}
       end)
 
