@@ -55,7 +55,7 @@ defmodule BackendFight.PaymentProcessors.SelectorTest do
 
   test "selects fallback when it's significantly faster", %{default: d, fallback: f} do
     Bypass.expect_once(d, "GET", "/payments/service-health", fn conn ->
-      Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 101}))
+      Plug.Conn.resp(conn, 200, ~s({"failing": false, "minResponseTime": 211}))
     end)
 
     Bypass.expect_once(f, "GET", "/payments/service-health", fn conn ->

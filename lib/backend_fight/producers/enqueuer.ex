@@ -9,7 +9,7 @@ defmodule BackendFight.Producers.Enqueuer do
 
   require Logger
 
-  @poll_interval 50
+  @poll_interval 10
   @queue_key "payments_created"
   @redix :redix
 

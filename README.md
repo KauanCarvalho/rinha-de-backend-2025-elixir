@@ -189,8 +189,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "60MB"
+          cpus: "0.15"
+          memory: "30MB"
 
   app1:
     build: .
@@ -219,8 +219,8 @@ services:
 
 ### Total Resource Allocation
 
-* **CPUs**: `0.25 + 0.5 + 0.5 + 0.25 = 1.5 CPUs`
-* **Memory**: `60MB + 130MB + 130MB + 30MB = 350MB`
+* **CPUs**: `0.15 + 0.6 + 0.6 + 0.15 = 1.5 CPUs`
+* **Memory**: `30MB + 180MB + 120MB + 20MB = 350MB`
 
 ---
 

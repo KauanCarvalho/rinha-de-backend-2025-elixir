@@ -21,7 +21,7 @@ services:
       resources:
         limits:
           cpus: "0.15"
-          memory: "20MB"
+          memory: "30MB"
 
   app1: &app
     build:
@@ -51,7 +51,7 @@ services:
       resources:
         limits:
           cpus: "0.6"
-          memory: "150MB"
+          memory: "180MB"
 
   app2:
     <<: *app
@@ -59,6 +59,7 @@ services:
     environment:
       <<: *app_env
       RELEASE_NODE: app2@127.0.0.1
+      BACKGROUND_PROCCESSES: "false"
     ports:
       - "3002:3000"
     depends_on:
@@ -70,7 +71,7 @@ services:
       resources:
         limits:
           cpus: "0.6"
-          memory: "150MB"
+          memory: "120MB"
 
   nginx:
     image: nginx:1.29.0-alpine 
@@ -88,7 +89,7 @@ services:
       resources:
         limits:
           cpus: '0.15'
-          memory: '30MB'
+          memory: '20MB'
 
 networks:
   backend:
