@@ -197,23 +197,23 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "130MB"
+          cpus: "0.6"
+          memory: "150MB"
 
   app2:
     build: .
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "130MB"
+          cpus: "0.6"
+          memory: "150MB"
 
   nginx:
     image: nginx:1.29.0-alpine
     deploy:
       resources:
         limits:
-          cpus: "0.25"
+          cpus: "0.15"
           memory: "30MB"
 ```
 
