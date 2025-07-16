@@ -27,8 +27,8 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
       ],
       processors: [
         default: [
-          concurrency: 50,
-          max_demand: 1
+          concurrency: 200,
+          max_demand: 10
         ]
       ]
     )

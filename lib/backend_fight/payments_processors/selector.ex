@@ -16,7 +16,7 @@ defmodule BackendFight.PaymentProcessors.Selector do
   @cache_key "selected_payment_processor"
   @default "default"
   @fallback "fallback"
-  @default_max_latency_difference 50
+  @default_max_latency_difference 200
   @cache_ttl 5
 
   @doc """

@@ -190,7 +190,7 @@ services:
       resources:
         limits:
           cpus: "0.15"
-          memory: "20MB"
+          memory: "30MB"
 
   app1:
     build: .
@@ -220,7 +220,7 @@ services:
 ### Total Resource Allocation
 
 * **CPUs**: `0.15 + 0.6 + 0.6 + 0.15 = 1.5 CPUs`
-* **Memory**: `20MB + 150MB + 150MB + 30MB = 350MB`
+* **Memory**: `30MB + 180MB + 120MB + 20MB = 350MB`
 
 ---
 

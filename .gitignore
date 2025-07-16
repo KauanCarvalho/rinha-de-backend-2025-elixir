@@ -30,3 +30,6 @@ backend_fight-*.tar
 
 # Ignore k6 report
 report.html
+
+# Ignore k6 result
+partial-results.json
