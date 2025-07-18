@@ -27,8 +27,8 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
       ],
       processors: [
         default: [
-          concurrency: 200,
-          max_demand: 10
+          concurrency: 300,
+          max_demand: 5
         ]
       ]
     )
@@ -41,8 +41,8 @@ defmodule BackendFight.Processors.PaymentAuthorizer do
         _ctx
       ) do
     with {:ok, processor} <- Selector.current_payment_processor(),
-         ts <- DateTime.utc_now() |> DateTime.truncate(:millisecond) |> DateTime.to_iso8601(),
          {:ok, processor_module} <- choose_processor(processor),
+         ts <- DateTime.utc_now() |> DateTime.truncate(:millisecond) |> DateTime.to_iso8601(),
          params <- %{
            correlationId: cid,
            amount: amount,
