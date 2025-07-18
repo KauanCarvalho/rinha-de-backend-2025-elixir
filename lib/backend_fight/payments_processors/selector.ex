@@ -16,6 +16,7 @@ defmodule BackendFight.PaymentProcessors.Selector do
   @cache_key "selected_payment_processor"
   @default "default"
   @fallback "fallback"
+  @max_latency 50
   @default_max_latency_difference 200
   @cache_ttl 5
 
@@ -50,6 +51,20 @@ defmodule BackendFight.PaymentProcessors.Selector do
 
   defp select_processor({:ok, %{}}, {:error, _}), do: @default
   defp select_processor({:error, _}, {:ok, %{}}), do: @fallback
+
+  defp select_processor(
+         {:ok, %{failing: false, min_response_time: rt}},
+         {:ok, %{failing: false}}
+       )
+       when rt <= @max_latency,
+       do: @default
+
+  defp select_processor(
+         {:ok, %{failing: false}},
+         {:ok, %{failing: false, min_response_time: frt}}
+       )
+       when frt <= @max_latency,
+       do: @fallback
 
   defp select_processor(
          {:ok, %{failing: false, min_response_time: rt}},

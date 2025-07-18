@@ -35,7 +35,7 @@ services:
       PORT: 3000
       SECRET_KEY_BASE: 7VEPFiqSBvMCcmYjUbt45ulgjalZbBkcLy6qZ9BNW7FVC984h7VNaaLFZaQxORCc
       ERL_MAX_PORTS: 2046
-      ELIXIR_ERL_OPTIONS: "+S 1:1 +sbwt none +sbwtdcpu none +sbwtdio none +A 0"
+      ELIXIR_ERL_OPTIONS: "+S 1:1 +A 0 +sbwt none +sbwtdcpu none +sbwtdio none +hmbs 512 +hms 233 +MBas ageffcbf"
       RELEASE_DISTRIBUTION: name
       RELEASE_NODE: app1@127.0.0.1
       PAYMENT_PROCESSOR_DEFAULT_HOST: http://payment-processor-default:8080
@@ -50,8 +50,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "180MB"
+          cpus: "0.8"
+          memory: "185MB"
 
   app2:
     <<: *app
@@ -70,8 +70,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "120MB"
+          cpus: "0.4"
+          memory: "115MB"
 
   nginx:
     image: nginx:1.29.0-alpine 
